@@ -92,6 +92,13 @@ Aplikacja uruchomi się na `http://localhost:5000`
 
 ---
 
+<img width="1879" height="828" alt="image" src="https://github.com/user-attachments/assets/e8f08f19-1e29-4c88-97bf-261566294b22" />
+<img width="914" height="706" alt="image" src="https://github.com/user-attachments/assets/76e0d47b-30b1-4320-96a8-ce7e67f963ae" />
+<img width="1881" height="890" alt="image" src="https://github.com/user-attachments/assets/259a36a8-6fdb-43cd-9673-d7a9e9995297" />
+<img width="1900" height="860" alt="image" src="https://github.com/user-attachments/assets/13b3be6a-9956-490d-9028-0123e1e7d87a" />
+<img width="1911" height="852" alt="image" src="https://github.com/user-attachments/assets/834519a0-6968-4646-9dc4-9ae68bf339e7" />
+
+
 ## EN - English
 
 ### About
@@ -182,7 +189,11 @@ The application will start at `http://localhost:5000`
 
 ## Screenshots
 
-*Coming soon*
+<img width="1898" height="909" alt="image" src="https://github.com/user-attachments/assets/e31892b8-1bc8-4a8e-82b3-6e81b9bfa9f5" />
+<img width="1896" height="817" alt="image" src="https://github.com/user-attachments/assets/102b25f9-338f-4e78-b6ac-be68b0880476" />
+<img width="1886" height="899" alt="image" src="https://github.com/user-attachments/assets/87bc9247-04fa-4b31-95c9-409d305e1a37" />
+<img width="1889" height="893" alt="image" src="https://github.com/user-attachments/assets/173090b7-2e54-4d6a-bcb2-2f1c52bd69bf" />
+
 
 ---
 
