@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Języki - InterQuizAI</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">InterQuizAI</div>
+        <ul class="nav-links">
+            <li><a href="/">Start</a></li>
+            <li><a href="/pages/history.html">Historia</a></li>
+            <li><a href="/pages/languages.html" class="active">Języki</a></li>
+            <li><a href="/pages/config.html">Ustawienia</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <h1 style="margin-bottom: 2rem;">Zarządzanie językami</h1>
+
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">Dodaj nowy język</h2>
+            </div>
+            <form id="add-language-form">
+                <div class="grid grid-3">
+                    <div class="form-group">
+                        <label for="tech-type">Typ technologii</label>
+                        <select id="tech-type" class="form-control" required>
+                            <option value="">Wybierz...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="lang-name">Nazwa (identyfikator)</label>
+                        <input type="text" id="lang-name" class="form-control" required
+                               placeholder="np. kotlin, flutter">
+                    </div>
+                    <div class="form-group">
+                        <label for="lang-display">Nazwa wyświetlana</label>
+                        <input type="text" id="lang-display" class="form-control" required
+                               placeholder="np. Kotlin, Flutter">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Dodaj język</button>
+            </form>
+        </section>
+
+        <div class="tabs">
+            <button class="tab active" data-type="backend">Backend</button>
+            <button class="tab" data-type="frontend">Frontend</button>
+        </div>
+
+        <section class="card">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nazwa</th>
+                            <th>Identyfikator</th>
+                            <th>Typ</th>
+                            <th>Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody id="languages-body">
+                        <!-- Loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script>
+        let currentType = 'backend';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadTechnologyTypes();
+            await loadLanguages('backend');
+            setupEventListeners();
+        });
+
+        async function loadTechnologyTypes() {
+            const types = await InterQuizAPI.getTechnologyTypes();
+            const select = document.getElementById('tech-type');
+            types.forEach(t => {
+                const option = document.createElement('option');
+                option.value = t.name;
+                option.textContent = t.displayName;
+                select.appendChild(option);
+            });
+        }
+
+        async function loadLanguages(type) {
+            currentType = type;
+            const languages = await InterQuizAPI.getLanguages(type);
+            const tbody = document.getElementById('languages-body');
+            tbody.innerHTML = '';
+
+            languages.forEach(lang => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${lang.displayName}</td>
+                        <td><code>${lang.name}</code></td>
+                        <td>${lang.technologyType}</td>
+                        <td>
+                            ${lang.isCustom
+                                ? `<button class="btn btn-sm btn-danger" onclick="deleteLanguage(${lang.id})">Usuń</button>`
+                                : '<span style="color: var(--text-muted);">Wbudowany</span>'
+                            }
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function deleteLanguage(id) {
+            if (confirm('Czy na pewno chcesz usunąć ten język?')) {
+                await InterQuizAPI.deleteLanguage(id);
+                await loadLanguages(currentType);
+            }
+        }
+
+        function setupEventListeners() {
+            // Tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', async () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    await loadLanguages(tab.dataset.type);
+                });
+            });
+
+            // Add language form
+            document.getElementById('add-language-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const techType = document.getElementById('tech-type').value;
+                const name = document.getElementById('lang-name').value;
+                const displayName = document.getElementById('lang-display').value;
+
+                const result = await InterQuizAPI.addLanguage(name, displayName, techType);
+                if (result.error) {
+                    alert(result.error);
+                } else {
+                    alert('Język dodany pomyślnie');
+                    document.getElementById('add-language-form').reset();
+                    await loadLanguages(techType);
+
+                    // Switch to the correct tab
+                    document.querySelectorAll('.tab').forEach(t => {
+                        t.classList.toggle('active', t.dataset.type === techType);
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>

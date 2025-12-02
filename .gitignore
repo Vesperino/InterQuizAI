@@ -1,0 +1,28 @@
+# .NET
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# User secrets
+secrets.json

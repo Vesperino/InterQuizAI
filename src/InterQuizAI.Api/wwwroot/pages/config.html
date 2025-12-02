@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ustawienia - InterQuizAI</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">InterQuizAI</div>
+        <ul class="nav-links">
+            <li><a href="/">Start</a></li>
+            <li><a href="/pages/history.html">Historia</a></li>
+            <li><a href="/pages/languages.html">Języki</a></li>
+            <li><a href="/pages/config.html" class="active">Ustawienia</a></li>
+        </ul>
+    </nav>
+
+    <main class="container" style="max-width: 600px;">
+        <h1 style="margin-bottom: 2rem;">Ustawienia</h1>
+
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">Status konfiguracji</h2>
+            </div>
+            <div id="status-container">
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div>
+                        Master Key:
+                        <span id="master-key-status" class="status-badge">Sprawdzanie...</span>
+                    </div>
+                    <div>
+                        API Key:
+                        <span id="api-key-status" class="status-badge">Sprawdzanie...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card" id="master-key-section">
+            <div class="card-header">
+                <h2 class="card-title">Master Key</h2>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Master key służy do szyfrowania Twojego klucza API. Zapamiętaj go - bez niego nie odszyfrujesz klucza API.
+            </p>
+            <form id="master-key-form">
+                <div class="form-group">
+                    <label for="master-key">Master Key (min. 16 znaków)</label>
+                    <input type="password" id="master-key" class="form-control" minlength="16" required
+                           placeholder="Wprowadź bezpieczne hasło">
+                </div>
+                <div class="form-group">
+                    <label for="master-key-confirm">Potwierdź Master Key</label>
+                    <input type="password" id="master-key-confirm" class="form-control" minlength="16" required
+                           placeholder="Powtórz hasło">
+                </div>
+                <button type="submit" class="btn btn-primary">Zapisz Master Key</button>
+            </form>
+        </section>
+
+        <section class="card" id="api-key-section" style="display: none;">
+            <div class="card-header">
+                <h2 class="card-title">OpenAI API Key</h2>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Klucz API możesz wygenerować na <a href="https://platform.openai.com/api-keys" target="_blank" style="color: var(--primary);">platform.openai.com</a>
+            </p>
+            <form id="api-key-form">
+                <div class="form-group">
+                    <label for="current-master-key">Master Key (do weryfikacji)</label>
+                    <input type="password" id="current-master-key" class="form-control" required
+                           placeholder="Wprowadź master key">
+                </div>
+                <div class="form-group">
+                    <label for="api-key">OpenAI API Key</label>
+                    <input type="password" id="api-key" class="form-control" required
+                           placeholder="sk-...">
+                </div>
+                <button type="submit" class="btn btn-primary">Zapisz API Key</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">Model OpenAI</h2>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Wybierz model do generowania quizów. Modele z web search: gpt-4o, gpt-4.1-2025-04-14
+            </p>
+            <form id="model-form">
+                <div class="form-group">
+                    <label for="model-name">Nazwa modelu</label>
+                    <input type="text" id="model-name" class="form-control" required
+                           placeholder="np. gpt-4o, gpt-5.1-2025-11-13">
+                </div>
+                <button type="submit" class="btn btn-primary">Zapisz Model</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">Sesja</h2>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Wyloguj się z aplikacji (usuwa master key z pamięci przeglądarki)
+            </p>
+            <button id="logout-btn" class="btn btn-danger">Wyloguj</button>
+        </section>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkStatus();
+            await loadModel();
+            setupEventListeners();
+        });
+
+        async function checkStatus() {
+            const status = await InterQuizAPI.getConfigStatus();
+
+            const masterKeyStatus = document.getElementById('master-key-status');
+            const apiKeyStatus = document.getElementById('api-key-status');
+            const masterKeySection = document.getElementById('master-key-section');
+            const apiKeySection = document.getElementById('api-key-section');
+
+            if (status.isMasterKeySet) {
+                masterKeyStatus.className = 'status-badge status-success';
+                masterKeyStatus.textContent = 'Skonfigurowany';
+                masterKeySection.style.display = 'none';
+                apiKeySection.style.display = 'block';
+            } else {
+                masterKeyStatus.className = 'status-badge status-error';
+                masterKeyStatus.textContent = 'Nie skonfigurowany';
+                masterKeySection.style.display = 'block';
+                apiKeySection.style.display = 'none';
+            }
+
+            if (status.isApiKeySet) {
+                apiKeyStatus.className = 'status-badge status-success';
+                apiKeyStatus.textContent = 'Skonfigurowany';
+            } else {
+                apiKeyStatus.className = 'status-badge status-warning';
+                apiKeyStatus.textContent = 'Nie skonfigurowany';
+            }
+        }
+
+        async function loadModel() {
+            const result = await InterQuizAPI.getModel();
+            document.getElementById('model-name').value = result.model || 'gpt-4o';
+        }
+
+        function setupEventListeners() {
+            // Master Key form
+            document.getElementById('master-key-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const key = document.getElementById('master-key').value;
+                const confirm = document.getElementById('master-key-confirm').value;
+
+                if (key !== confirm) {
+                    alert('Hasła nie są identyczne');
+                    return;
+                }
+
+                if (key.length < 16) {
+                    alert('Master key musi mieć minimum 16 znaków');
+                    return;
+                }
+
+                const result = await InterQuizAPI.setMasterKey(key);
+                if (result.message) {
+                    alert('Master key zapisany pomyślnie');
+                    SessionManager.setMasterKey(key);
+                    await checkStatus();
+                } else {
+                    alert(result.error || 'Błąd podczas zapisywania');
+                }
+            });
+
+            // API Key form
+            document.getElementById('api-key-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const masterKey = document.getElementById('current-master-key').value;
+                const apiKey = document.getElementById('api-key').value;
+
+                const result = await InterQuizAPI.setApiKey(apiKey, masterKey);
+                if (result.message) {
+                    alert('API Key zapisany pomyślnie');
+                    SessionManager.setMasterKey(masterKey);
+                    await checkStatus();
+                } else {
+                    alert(result.error || 'Błąd - sprawdź master key');
+                }
+            });
+
+            // Model form
+            document.getElementById('model-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const modelName = document.getElementById('model-name').value;
+
+                const result = await InterQuizAPI.setModel(modelName);
+                if (result.message) {
+                    alert('Model zapisany pomyślnie');
+                } else {
+                    alert(result.error || 'Błąd podczas zapisywania');
+                }
+            });
+
+            // Logout
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                SessionManager.clearMasterKey();
+                alert('Wylogowano pomyślnie');
+                window.location.href = '/';
+            });
+        }
+    </script>
+</body>
+</html>

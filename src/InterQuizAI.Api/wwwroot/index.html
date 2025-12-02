@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InterQuizAI - Przygotowanie do rozmów technicznych</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">InterQuizAI</div>
+        <ul class="nav-links">
+            <li><a href="/" class="active">Start</a></li>
+            <li><a href="/pages/history.html">Historia</a></li>
+            <li><a href="/pages/languages.html">Języki</a></li>
+            <li><a href="/pages/config.html">Ustawienia</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <section class="hero">
+            <h1>Przygotuj się do rozmowy technicznej</h1>
+            <p>Quizy generowane przez AI z weryfikowanymi odpowiedziami</p>
+        </section>
+
+        <div id="config-alert" class="alert alert-error" style="display: none;">
+            Najpierw skonfiguruj aplikację w <a href="/pages/config.html">Ustawieniach</a>
+        </div>
+
+        <div id="login-section" class="card" style="display: none;">
+            <div class="card-header">
+                <h2 class="card-title">Zaloguj się</h2>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-master-key">Master Key</label>
+                    <input type="password" id="login-master-key" class="form-control" placeholder="Wprowadź master key" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Zaloguj</button>
+            </form>
+        </div>
+
+        <section id="quiz-form-section" class="card" style="display: none;">
+            <div class="card-header">
+                <h2 class="card-title">Rozpocznij Quiz</h2>
+            </div>
+            <form id="quiz-form">
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label for="tech-type">Typ technologii</label>
+                        <select id="tech-type" class="form-control" required>
+                            <option value="">Wybierz typ...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="language">Język / Framework</label>
+                        <select id="language" class="form-control" required disabled>
+                            <option value="">Najpierw wybierz typ...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label for="category">Kategoria pytań</label>
+                        <select id="category" class="form-control" required disabled>
+                            <option value="">Najpierw wybierz typ...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="difficulty">Poziom trudności</label>
+                        <select id="difficulty" class="form-control" required>
+                            <option value="">Wybierz poziom...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" id="hint-container" style="display: none;">
+                    <label for="hint">Dodatkowa wskazówka (opcjonalne)</label>
+                    <input type="text" id="hint" class="form-control" placeholder="np. SQL Server, Pinia, xUnit">
+                    <small style="color: var(--text-muted);">Pomaga AI skupić się na konkretnej technologii</small>
+                </div>
+
+                <div id="offline-info" style="display: none; margin-bottom: 1rem;">
+                    <span class="status-badge status-success">Dostępny tryb offline</span>
+                    <span style="color: var(--text-secondary); margin-left: 0.5rem;">(<span id="stored-count">0</span> zapisanych pytań)</span>
+                </div>
+
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary" id="generate-btn">
+                        Generuj Quiz (AI)
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="offline-btn" disabled>
+                        Quiz Offline
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+                <h2 class="card-title">Twój plan nauki (.NET Mid + Vue3)</h2>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Typ</th>
+                            <th>Język</th>
+                            <th>Kategoria</th>
+                            <th>Sesje</th>
+                            <th>Hint</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Backend</td><td>C# / .NET</td><td>Fundamenty języka</td><td>2</td><td>-</td></tr>
+                        <tr><td>Backend</td><td>C# / .NET</td><td>Architektura & Wzorce</td><td>2</td><td>-</td></tr>
+                        <tr><td>Backend</td><td>C# / .NET</td><td>Bazy danych</td><td>2</td><td>SQL Server, EF Core</td></tr>
+                        <tr><td>Backend</td><td>C# / .NET</td><td>API & Komunikacja</td><td>1</td><td>REST API, ASP.NET Core</td></tr>
+                        <tr><td>Backend</td><td>C# / .NET</td><td>Jakość & Testy</td><td>1</td><td>xUnit, Moq</td></tr>
+                        <tr><td>Frontend</td><td>Vue 3</td><td>Fundamenty frameworka</td><td>2</td><td>Composition API</td></tr>
+                        <tr><td>Frontend</td><td>Vue 3</td><td>State Management</td><td>1</td><td>Pinia</td></tr>
+                        <tr><td>Frontend</td><td>Vue 3</td><td>TypeScript & Typowanie</td><td>1</td><td>Vue 3 + TypeScript</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p style="margin-top: 1rem; color: var(--text-secondary);">Razem: 12 sesji = ~240 pytań</p>
+        </section>
+    </main>
+
+    <div class="loading-overlay" id="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p class="loading-text">Generowanie quizu przez AI...</p>
+        <p class="loading-text" style="font-size: 0.875rem; margin-top: 0.5rem;">To może potrwać do 60 sekund</p>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script>
+        let selectedCategory = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkConfig();
+            await loadDifficultyLevels();
+            await loadTechnologyTypes();
+            setupEventListeners();
+        });
+
+        async function checkConfig() {
+            const status = await InterQuizAPI.getConfigStatus();
+            const configAlert = document.getElementById('config-alert');
+            const loginSection = document.getElementById('login-section');
+            const quizSection = document.getElementById('quiz-form-section');
+
+            if (!status.isMasterKeySet || !status.isApiKeySet) {
+                configAlert.style.display = 'block';
+                loginSection.style.display = 'none';
+                quizSection.style.display = 'none';
+            } else if (!SessionManager.isLoggedIn()) {
+                configAlert.style.display = 'none';
+                loginSection.style.display = 'block';
+                quizSection.style.display = 'none';
+            } else {
+                configAlert.style.display = 'none';
+                loginSection.style.display = 'none';
+                quizSection.style.display = 'block';
+            }
+        }
+
+        async function loadTechnologyTypes() {
+            const types = await InterQuizAPI.getTechnologyTypes();
+            const select = document.getElementById('tech-type');
+            types.forEach(t => {
+                const option = document.createElement('option');
+                option.value = t.name;
+                option.textContent = t.displayName;
+                select.appendChild(option);
+            });
+        }
+
+        async function loadLanguages(techType) {
+            const languages = await InterQuizAPI.getLanguages(techType);
+            const select = document.getElementById('language');
+            select.innerHTML = '<option value="">Wybierz język...</option>';
+            languages.forEach(l => {
+                const option = document.createElement('option');
+                option.value = l.id;
+                option.textContent = l.displayName;
+                select.appendChild(option);
+            });
+            select.disabled = false;
+        }
+
+        async function loadCategories(techType) {
+            const categories = await InterQuizAPI.getCategories(techType);
+            const select = document.getElementById('category');
+            select.innerHTML = '<option value="">Wybierz kategorię...</option>';
+            categories.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c.id;
+                option.textContent = c.displayName;
+                option.dataset.allowsHint = c.allowsHint;
+                select.appendChild(option);
+            });
+            select.disabled = false;
+        }
+
+        async function loadDifficultyLevels() {
+            const levels = await InterQuizAPI.getDifficultyLevels();
+            const select = document.getElementById('difficulty');
+            levels.forEach(l => {
+                const option = document.createElement('option');
+                option.value = l.id;
+                option.textContent = `${l.displayName} - ${l.description}`;
+                select.appendChild(option);
+            });
+        }
+
+        async function checkOfflineAvailability() {
+            const languageId = document.getElementById('language').value;
+            const categoryId = document.getElementById('category').value;
+            const difficultyId = document.getElementById('difficulty').value;
+
+            if (languageId && categoryId && difficultyId) {
+                const result = await InterQuizAPI.getStoredQuestionsCount(languageId, categoryId, difficultyId);
+                document.getElementById('stored-count').textContent = result.count;
+                document.getElementById('offline-info').style.display = result.canGenerateOffline ? 'block' : 'none';
+                document.getElementById('offline-btn').disabled = !result.canGenerateOffline;
+            }
+        }
+
+        function setupEventListeners() {
+            // Login form
+            document.getElementById('login-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const masterKey = document.getElementById('login-master-key').value;
+                const result = await InterQuizAPI.verifyMasterKey(masterKey);
+                if (result.valid) {
+                    SessionManager.setMasterKey(masterKey);
+                    await checkConfig();
+                } else {
+                    alert('Nieprawidłowy master key');
+                }
+            });
+
+            // Tech type change
+            document.getElementById('tech-type').addEventListener('change', async (e) => {
+                const type = e.target.value;
+                if (type) {
+                    await loadLanguages(type);
+                    await loadCategories(type);
+                } else {
+                    document.getElementById('language').innerHTML = '<option value="">Najpierw wybierz typ...</option>';
+                    document.getElementById('language').disabled = true;
+                    document.getElementById('category').innerHTML = '<option value="">Najpierw wybierz typ...</option>';
+                    document.getElementById('category').disabled = true;
+                }
+            });
+
+            // Category change - show hint if allowed
+            document.getElementById('category').addEventListener('change', (e) => {
+                const option = e.target.selectedOptions[0];
+                const allowsHint = option?.dataset?.allowsHint === 'true';
+                document.getElementById('hint-container').style.display = allowsHint ? 'block' : 'none';
+                checkOfflineAvailability();
+            });
+
+            // Other selects change
+            ['language', 'difficulty'].forEach(id => {
+                document.getElementById(id).addEventListener('change', checkOfflineAvailability);
+            });
+
+            // Quiz form submit
+            document.getElementById('quiz-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await generateQuiz(false);
+            });
+
+            // Offline button
+            document.getElementById('offline-btn').addEventListener('click', async () => {
+                await generateQuiz(true);
+            });
+        }
+
+        async function generateQuiz(offline) {
+            const languageId = parseInt(document.getElementById('language').value);
+            const categoryId = parseInt(document.getElementById('category').value);
+            const difficultyId = parseInt(document.getElementById('difficulty').value);
+            const hint = document.getElementById('hint').value || null;
+            const masterKey = SessionManager.getMasterKey();
+
+            document.getElementById('loading').style.display = 'flex';
+
+            try {
+                let result;
+                if (offline) {
+                    result = await InterQuizAPI.generateOfflineQuiz(languageId, categoryId, difficultyId, hint, masterKey);
+                } else {
+                    result = await InterQuizAPI.generateQuiz(languageId, categoryId, difficultyId, hint, masterKey);
+                }
+
+                if (result.error) {
+                    alert(result.error);
+                } else {
+                    window.location.href = `/pages/quiz.html?session=${result.sessionGuid}`;
+                }
+            } catch (error) {
+                alert('Błąd podczas generowania quizu: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wyniki - InterQuizAI</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/quiz.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">InterQuizAI</div>
+        <ul class="nav-links">
+            <li><a href="/">Start</a></li>
+            <li><a href="/pages/history.html">Historia</a></li>
+            <li><a href="/pages/languages.html">Języki</a></li>
+            <li><a href="/pages/config.html">Ustawienia</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <section class="results-summary">
+            <h1>Quiz Zakończony!</h1>
+            <div class="score-circle">
+                <div class="score-circle-inner">
+                    <span class="score-percentage" id="score-percentage">0%</span>
+                </div>
+            </div>
+            <div class="score-details">
+                <p style="font-size: 1.25rem; margin-bottom: 0.5rem;">
+                    <span id="correct-count">0</span> / <span id="total-count">20</span> poprawnych odpowiedzi
+                </p>
+                <p>
+                    <span id="result-language"></span> |
+                    <span id="result-category"></span> |
+                    <span id="result-difficulty"></span>
+                </p>
+            </div>
+        </section>
+
+        <section>
+            <h2 style="margin-bottom: 1.5rem;">Przegląd odpowiedzi</h2>
+            <div id="questions-review">
+                <!-- Questions loaded dynamically -->
+            </div>
+        </section>
+
+        <div style="text-align: center; margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+            <a href="/" class="btn btn-primary">Nowy Quiz</a>
+            <a href="/pages/history.html" class="btn btn-secondary">Historia</a>
+        </div>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const sessionGuid = params.get('session');
+
+            if (!sessionGuid) {
+                window.location.href = '/';
+                return;
+            }
+
+            const results = await InterQuizAPI.getResults(sessionGuid);
+            displayResults(results);
+        });
+
+        function displayResults(results) {
+            document.getElementById('score-percentage').textContent = `${Math.round(results.scorePercentage)}%`;
+            document.getElementById('correct-count').textContent = results.correctAnswers;
+            document.getElementById('total-count').textContent = results.totalQuestions;
+            document.getElementById('result-language').textContent = results.language;
+            document.getElementById('result-category').textContent = results.category;
+            document.getElementById('result-difficulty').textContent = results.difficultyLevel;
+
+            const container = document.getElementById('questions-review');
+            const letters = ['A', 'B', 'C', 'D', 'E'];
+
+            results.questions.forEach((q, index) => {
+                const statusClass = q.selectedAnswerId === null ? 'skipped' : (q.isCorrect ? 'correct' : 'incorrect');
+                const statusText = q.selectedAnswerId === null ? 'Pominięte' : (q.isCorrect ? 'Poprawne' : 'Błędne');
+
+                let answersHtml = '';
+                q.answers.forEach((a, i) => {
+                    let answerClass = '';
+                    if (a.isCorrect) answerClass = 'correct';
+                    else if (a.isSelected && !a.isCorrect) answerClass = 'incorrect';
+
+                    answersHtml += `
+                        <div class="answer-option ${answerClass} disabled">
+                            <span class="answer-letter">${letters[i]}</span>
+                            <span class="answer-text">${a.text}</span>
+                        </div>
+                    `;
+                });
+
+                let explanationHtml = '';
+                if (q.explanation) {
+                    explanationHtml = `
+                        <div class="review-explanation">
+                            <h4>Wyjaśnienie</h4>
+                            <p>${q.explanation}</p>
+                            ${q.sourceUrl ? `
+                                <div class="source-citation">
+                                    <a href="${q.sourceUrl}" target="_blank" rel="noopener">
+                                        Źródło: ${q.sourceTitle || q.sourceUrl}
+                                    </a>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+
+                container.innerHTML += `
+                    <div class="review-item">
+                        <div class="review-header">
+                            <span style="color: var(--text-secondary);">Pytanie ${q.questionNumber}</span>
+                            <span class="result-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="review-question">${q.questionText}</div>
+                        <div class="answers-list" style="margin-top: 1rem;">
+                            ${answersHtml}
+                        </div>
+                        ${explanationHtml}
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>

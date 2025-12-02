@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historia - InterQuizAI</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">InterQuizAI</div>
+        <ul class="nav-links">
+            <li><a href="/">Start</a></li>
+            <li><a href="/pages/history.html" class="active">Historia</a></li>
+            <li><a href="/pages/languages.html">Języki</a></li>
+            <li><a href="/pages/config.html">Ustawienia</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <h1 style="margin-bottom: 2rem;">Historia Quizów</h1>
+
+        <section class="card" id="stats-card">
+            <div class="card-header">
+                <h2 class="card-title">Statystyki</h2>
+            </div>
+            <div class="grid grid-3" id="stats-grid">
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--primary);" id="total-quizzes">0</div>
+                    <div style="color: var(--text-secondary);">Ukończonych quizów</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--success);" id="avg-score">0%</div>
+                    <div style="color: var(--text-secondary);">Średni wynik</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--warning);" id="total-questions">0</div>
+                    <div style="color: var(--text-secondary);">Odpowiedzianych pytań</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">Lista quizów</h2>
+            </div>
+            <div class="table-container">
+                <table id="history-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Język</th>
+                            <th>Kategoria</th>
+                            <th>Poziom</th>
+                            <th>Wynik</th>
+                            <th>Typ</th>
+                            <th>Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body">
+                        <!-- Loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="empty-state" id="empty-state" style="display: none;">
+                <p>Brak historii quizów</p>
+                <a href="/" class="btn btn-primary" style="margin-top: 1rem;">Rozpocznij pierwszy quiz</a>
+            </div>
+        </section>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadStats();
+            await loadHistory();
+        });
+
+        async function loadStats() {
+            const stats = await InterQuizAPI.getStats();
+            document.getElementById('total-quizzes').textContent = stats.completedQuizzes;
+            document.getElementById('avg-score').textContent = `${Math.round(stats.averageScore)}%`;
+            document.getElementById('total-questions').textContent = stats.totalQuestions;
+        }
+
+        async function loadHistory() {
+            const history = await InterQuizAPI.getHistory();
+            const tbody = document.getElementById('history-body');
+            const emptyState = document.getElementById('empty-state');
+
+            if (history.length === 0) {
+                tbody.parentElement.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            history.forEach(item => {
+                const date = new Date(item.startedAt).toLocaleDateString('pl-PL', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                const scoreClass = item.scorePercentage >= 70 ? 'status-success' :
+                                   item.scorePercentage >= 50 ? 'status-warning' : 'status-error';
+
+                const typeLabel = item.isOfflineGenerated ? 'Offline' : 'AI';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${item.language}</td>
+                        <td>${item.category}</td>
+                        <td>${item.difficultyLevel}</td>
+                        <td>
+                            <span class="status-badge ${scoreClass}">
+                                ${Math.round(item.scorePercentage)}% (${item.correctAnswers}/${item.totalQuestions})
+                            </span>
+                        </td>
+                        <td>${typeLabel}</td>
+                        <td>
+                            <a href="/pages/results.html?session=${item.sessionGuid}" class="btn btn-sm btn-secondary">Zobacz</a>
+                            <button class="btn btn-sm btn-danger" onclick="deleteHistory('${item.sessionGuid}')">Usuń</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function deleteHistory(sessionGuid) {
+            if (confirm('Czy na pewno chcesz usunąć ten quiz z historii?')) {
+                await InterQuizAPI.deleteHistory(sessionGuid);
+                await loadHistory();
+                await loadStats();
+            }
+        }
+    </script>
+</body>
+</html>

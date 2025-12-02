@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz - InterQuizAI</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/quiz.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">InterQuizAI</div>
+        <ul class="nav-links">
+            <li><a href="/">Start</a></li>
+            <li><a href="/pages/history.html">Historia</a></li>
+            <li><a href="/pages/languages.html">Języki</a></li>
+            <li><a href="/pages/config.html">Ustawienia</a></li>
+        </ul>
+    </nav>
+
+    <main class="container quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-info">
+                <span id="quiz-language"></span>
+                <span id="quiz-category"></span>
+                <span id="quiz-difficulty"></span>
+            </div>
+            <div class="quiz-progress">
+                <div class="quiz-progress-text">
+                    <span>Pytanie <span id="current-q">1</span> z <span id="total-q">20</span></span>
+                    <span id="answered-count">0 odpowiedzi</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 5%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="question-card" id="question-card">
+            <div class="question-number" id="question-number">Pytanie 1</div>
+            <div class="question-text" id="question-text">
+                Ładowanie pytania...
+            </div>
+
+            <div class="answers-list" id="answers-list">
+                <!-- Answers loaded dynamically -->
+            </div>
+
+            <div class="question-actions">
+                <button class="btn btn-secondary" id="prev-btn" disabled>
+                    &larr; Poprzednie
+                </button>
+                <div>
+                    <button class="btn btn-secondary" id="skip-btn">
+                        Pomiń
+                    </button>
+                    <button class="btn btn-primary" id="next-btn">
+                        Następne &rarr;
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+            <button class="btn btn-success" id="finish-btn" style="display: none;">
+                Zakończ Quiz i zobacz wyniki
+            </button>
+        </div>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script>
+        let sessionGuid = null;
+        let currentQuestion = 1;
+        let totalQuestions = 20;
+        let answers = {}; // questionId -> answerId
+        let questions = []; // cached questions
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            sessionGuid = params.get('session');
+
+            if (!sessionGuid) {
+                window.location.href = '/';
+                return;
+            }
+
+            await loadSession();
+            await loadQuestion(1);
+            setupEventListeners();
+        });
+
+        async function loadSession() {
+            const session = await InterQuizAPI.getSession(sessionGuid);
+            document.getElementById('quiz-language').textContent = session.language;
+            document.getElementById('quiz-category').textContent = session.category;
+            document.getElementById('quiz-difficulty').textContent = session.difficultyLevel;
+            totalQuestions = session.totalQuestions;
+            document.getElementById('total-q').textContent = totalQuestions;
+        }
+
+        async function loadQuestion(num) {
+            currentQuestion = num;
+            document.getElementById('current-q').textContent = num;
+            document.getElementById('question-number').textContent = `Pytanie ${num}`;
+            document.getElementById('progress-fill').style.width = `${(num / totalQuestions) * 100}%`;
+
+            // Update buttons
+            document.getElementById('prev-btn').disabled = num === 1;
+            document.getElementById('next-btn').style.display = num === totalQuestions ? 'none' : 'inline-flex';
+            document.getElementById('finish-btn').style.display = num === totalQuestions ? 'inline-flex' : 'none';
+
+            const question = await InterQuizAPI.getQuestion(sessionGuid, num);
+            questions[num] = question;
+
+            document.getElementById('question-text').textContent = question.questionText;
+
+            const answersContainer = document.getElementById('answers-list');
+            answersContainer.innerHTML = '';
+
+            const letters = ['A', 'B', 'C', 'D', 'E'];
+            question.answers.forEach((answer, index) => {
+                const div = document.createElement('div');
+                div.className = 'answer-option';
+                if (answers[question.questionId] === answer.id) {
+                    div.classList.add('selected');
+                }
+                div.dataset.answerId = answer.id;
+                div.dataset.questionId = question.questionId;
+                div.innerHTML = `
+                    <span class="answer-letter">${letters[index]}</span>
+                    <span class="answer-text">${answer.text}</span>
+                `;
+                div.addEventListener('click', () => selectAnswer(div, question.questionId, answer.id));
+                answersContainer.appendChild(div);
+            });
+
+            updateAnsweredCount();
+        }
+
+        function selectAnswer(element, questionId, answerId) {
+            // Remove selection from other answers
+            document.querySelectorAll('.answer-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            answers[questionId] = answerId;
+
+            // Submit answer to server
+            InterQuizAPI.submitAnswer(sessionGuid, questionId, answerId);
+            updateAnsweredCount();
+        }
+
+        function updateAnsweredCount() {
+            const count = Object.keys(answers).length;
+            document.getElementById('answered-count').textContent = `${count} odpowiedzi`;
+        }
+
+        function setupEventListeners() {
+            document.getElementById('prev-btn').addEventListener('click', () => {
+                if (currentQuestion > 1) {
+                    loadQuestion(currentQuestion - 1);
+                }
+            });
+
+            document.getElementById('next-btn').addEventListener('click', () => {
+                if (currentQuestion < totalQuestions) {
+                    loadQuestion(currentQuestion + 1);
+                }
+            });
+
+            document.getElementById('skip-btn').addEventListener('click', () => {
+                if (currentQuestion < totalQuestions) {
+                    loadQuestion(currentQuestion + 1);
+                }
+            });
+
+            document.getElementById('finish-btn').addEventListener('click', async () => {
+                if (confirm('Czy na pewno chcesz zakończyć quiz? Nie będzie można zmienić odpowiedzi.')) {
+                    await InterQuizAPI.completeQuiz(sessionGuid);
+                    window.location.href = `/pages/results.html?session=${sessionGuid}`;
+                }
+            });
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft' && currentQuestion > 1) {
+                    loadQuestion(currentQuestion - 1);
+                } else if (e.key === 'ArrowRight' && currentQuestion < totalQuestions) {
+                    loadQuestion(currentQuestion + 1);
+                } else if (e.key >= '1' && e.key <= '5') {
+                    const index = parseInt(e.key) - 1;
+                    const answerOptions = document.querySelectorAll('.answer-option');
+                    if (answerOptions[index]) {
+                        answerOptions[index].click();
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
