@@ -128,6 +128,8 @@ public class OpenAIClient : IOpenAIClient
                 q.SourceTitle
             )).ToList();
 
+            _logger.LogInformation("Generated {Count} questions", questions.Count);
+
             return new QuizGenerationResult(true, questions, null);
         }
         catch (Exception ex)

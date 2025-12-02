@@ -158,15 +158,19 @@ public class QuizService : IQuizService
 
     public async Task<QuizSessionDto?> GenerateOfflineQuizAsync(GenerateQuizRequest request, CancellationToken ct = default)
     {
-        // Get random questions from stored database (up to 20)
-        var questions = await _dbContext.Questions
+        // Get all matching questions from database, then shuffle in memory (SQLite can't translate Guid.NewGuid())
+        var allQuestions = await _dbContext.Questions
             .Include(q => q.Answers)
             .Where(q => q.LanguageId == request.LanguageId
                      && q.CategoryId == request.CategoryId
                      && q.DifficultyLevelId == request.DifficultyLevelId)
-            .OrderBy(q => Guid.NewGuid())
-            .Take(MaxOfflineQuestions)
             .ToListAsync(ct);
+
+        // Shuffle in memory and take up to MaxOfflineQuestions
+        var questions = allQuestions
+            .OrderBy(_ => Random.Shared.Next())
+            .Take(MaxOfflineQuestions)
+            .ToList();
 
         if (questions.Count < MinOfflineQuestions)
         {
