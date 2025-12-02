@@ -87,20 +87,27 @@ const InterQuizAPI = {
     },
 
     // Quiz
-    async generateQuiz(languageId, categoryId, difficultyLevelId, hint, masterKey) {
+    async generateQuiz(languageId, categoryId, difficultyLevelId, hint, masterKey, quizLanguage = 'pl') {
         const response = await fetch(`${API_BASE}/quiz/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ languageId, categoryId, difficultyLevelId, hint, masterKey })
+            body: JSON.stringify({ languageId, categoryId, difficultyLevelId, hint, masterKey, quizLanguage })
         });
         return response.json();
     },
 
-    async generateOfflineQuiz(languageId, categoryId, difficultyLevelId, hint, masterKey) {
+    async generateOfflineQuiz(languageId, categoryId, difficultyLevelId, hint, masterKey, quizLanguage = 'pl') {
         const response = await fetch(`${API_BASE}/quiz/generate-offline`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ languageId, categoryId, difficultyLevelId, hint, masterKey })
+            body: JSON.stringify({ languageId, categoryId, difficultyLevelId, hint, masterKey, quizLanguage })
+        });
+        return response.json();
+    },
+
+    async repeatQuiz(sessionGuid) {
+        const response = await fetch(`${API_BASE}/quiz/repeat/${sessionGuid}`, {
+            method: 'POST'
         });
         return response.json();
     },

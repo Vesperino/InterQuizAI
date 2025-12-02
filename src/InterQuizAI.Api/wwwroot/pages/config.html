@@ -9,30 +9,38 @@
 <body>
     <nav class="navbar">
         <div class="logo">InterQuizAI</div>
-        <ul class="nav-links">
-            <li><a href="/">Start</a></li>
-            <li><a href="/pages/history.html">Historia</a></li>
-            <li><a href="/pages/languages.html">Języki</a></li>
-            <li><a href="/pages/config.html" class="active">Ustawienia</a></li>
-        </ul>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li><a href="/" data-i18n="nav.start">Start</a></li>
+                <li><a href="/pages/history.html" data-i18n="nav.history">Historia</a></li>
+                <li><a href="/pages/languages.html" data-i18n="nav.languages">Języki</a></li>
+                <li><a href="/pages/config.html" class="active" data-i18n="nav.settings">Ustawienia</a></li>
+            </ul>
+            <div class="lang-switcher">
+                <select id="lang-switcher" onchange="I18n.setLanguage(this.value)">
+                    <option value="pl">PL</option>
+                    <option value="en">EN</option>
+                </select>
+            </div>
+        </div>
     </nav>
 
     <main class="container" style="max-width: 600px;">
-        <h1 style="margin-bottom: 2rem;">Ustawienia</h1>
+        <h1 style="margin-bottom: 2rem;" data-i18n="config.title">Ustawienia</h1>
 
         <section class="card">
             <div class="card-header">
-                <h2 class="card-title">Status konfiguracji</h2>
+                <h2 class="card-title" data-i18n="config.apiConfig">Konfiguracja API</h2>
             </div>
             <div id="status-container">
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                     <div>
                         Master Key:
-                        <span id="master-key-status" class="status-badge">Sprawdzanie...</span>
+                        <span id="master-key-status" class="status-badge">...</span>
                     </div>
                     <div>
                         API Key:
-                        <span id="api-key-status" class="status-badge">Sprawdzanie...</span>
+                        <span id="api-key-status" class="status-badge">...</span>
                     </div>
                 </div>
             </div>
@@ -40,77 +48,75 @@
 
         <section class="card" id="master-key-section">
             <div class="card-header">
-                <h2 class="card-title">Master Key</h2>
+                <h2 class="card-title" data-i18n="config.masterKeySection">Master Key</h2>
             </div>
-            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                Master key służy do szyfrowania Twojego klucza API. Zapamiętaj go - bez niego nie odszyfrujesz klucza API.
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;" data-i18n="config.masterKeyInfo">
+                Hasło do szyfrowania klucza API (min. 16 znaków)
             </p>
             <form id="master-key-form">
                 <div class="form-group">
-                    <label for="master-key">Master Key (min. 16 znaków)</label>
+                    <label for="master-key">Master Key</label>
                     <input type="password" id="master-key" class="form-control" minlength="16" required
-                           placeholder="Wprowadź bezpieczne hasło">
+                           data-i18n-placeholder="config.masterKeyPlaceholder" placeholder="Wprowadź master key (min. 16 znaków)">
                 </div>
                 <div class="form-group">
-                    <label for="master-key-confirm">Potwierdź Master Key</label>
+                    <label for="master-key-confirm">Confirm</label>
                     <input type="password" id="master-key-confirm" class="form-control" minlength="16" required
-                           placeholder="Powtórz hasło">
+                           placeholder="Confirm">
                 </div>
-                <button type="submit" class="btn btn-primary">Zapisz Master Key</button>
+                <button type="submit" class="btn btn-primary" data-i18n="config.masterKeyBtn">Ustaw Master Key</button>
             </form>
         </section>
 
         <section class="card" id="api-key-section" style="display: none;">
             <div class="card-header">
-                <h2 class="card-title">OpenAI API Key</h2>
+                <h2 class="card-title" data-i18n="config.apiKeySection">Klucz API OpenAI</h2>
             </div>
-            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                Klucz API możesz wygenerować na <a href="https://platform.openai.com/api-keys" target="_blank" style="color: var(--primary);">platform.openai.com</a>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;" data-i18n="config.apiKeyInfo">
+                Klucz będzie zaszyfrowany master key'em
             </p>
             <form id="api-key-form">
                 <div class="form-group">
-                    <label for="current-master-key">Master Key (do weryfikacji)</label>
+                    <label for="current-master-key">Master Key</label>
                     <input type="password" id="current-master-key" class="form-control" required
-                           placeholder="Wprowadź master key">
+                           data-i18n-placeholder="config.masterKeyPlaceholder" placeholder="Wprowadź master key">
                 </div>
                 <div class="form-group">
                     <label for="api-key">OpenAI API Key</label>
                     <input type="password" id="api-key" class="form-control" required
-                           placeholder="sk-...">
+                           data-i18n-placeholder="config.apiKeyPlaceholder" placeholder="sk-...">
                 </div>
-                <button type="submit" class="btn btn-primary">Zapisz API Key</button>
+                <button type="submit" class="btn btn-primary" data-i18n="config.apiKeyBtn">Zapisz klucz API</button>
             </form>
         </section>
 
         <section class="card">
             <div class="card-header">
-                <h2 class="card-title">Model OpenAI</h2>
+                <h2 class="card-title" data-i18n="config.modelSection">Model OpenAI</h2>
             </div>
-            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                Wybierz model do generowania quizów. Modele z web search: gpt-4o, gpt-4.1-2025-04-14
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;" data-i18n="config.modelInfo">
+                Wpisz nazwę modelu
             </p>
             <form id="model-form">
                 <div class="form-group">
-                    <label for="model-name">Nazwa modelu</label>
+                    <label for="model-name" data-i18n="config.currentModel">Aktualny model</label>
                     <input type="text" id="model-name" class="form-control" required
-                           placeholder="np. gpt-4o, gpt-5.1-2025-11-13">
+                           data-i18n-placeholder="config.modelPlaceholder" placeholder="np. gpt-4o, gpt-4.1-2025-04-14">
                 </div>
-                <button type="submit" class="btn btn-primary">Zapisz Model</button>
+                <button type="submit" class="btn btn-primary" data-i18n="config.modelBtn">Zapisz model</button>
             </form>
         </section>
 
         <section class="card">
             <div class="card-header">
-                <h2 class="card-title">Sesja</h2>
+                <h2 class="card-title">Session</h2>
             </div>
-            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                Wyloguj się z aplikacji (usuwa master key z pamięci przeglądarki)
-            </p>
-            <button id="logout-btn" class="btn btn-danger">Wyloguj</button>
+            <button id="logout-btn" class="btn btn-danger" data-i18n="config.logout">Wyloguj</button>
         </section>
     </main>
 
     <script src="/js/api.js"></script>
+    <script src="/js/i18n.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             await checkStatus();
@@ -128,22 +134,22 @@
 
             if (status.isMasterKeySet) {
                 masterKeyStatus.className = 'status-badge status-success';
-                masterKeyStatus.textContent = 'Skonfigurowany';
+                masterKeyStatus.textContent = I18n.t('config.configured');
                 masterKeySection.style.display = 'none';
                 apiKeySection.style.display = 'block';
             } else {
                 masterKeyStatus.className = 'status-badge status-error';
-                masterKeyStatus.textContent = 'Nie skonfigurowany';
+                masterKeyStatus.textContent = I18n.t('config.notConfigured');
                 masterKeySection.style.display = 'block';
                 apiKeySection.style.display = 'none';
             }
 
             if (status.isApiKeySet) {
                 apiKeyStatus.className = 'status-badge status-success';
-                apiKeyStatus.textContent = 'Skonfigurowany';
+                apiKeyStatus.textContent = I18n.t('config.configured');
             } else {
                 apiKeyStatus.className = 'status-badge status-warning';
-                apiKeyStatus.textContent = 'Nie skonfigurowany';
+                apiKeyStatus.textContent = I18n.t('config.notConfigured');
             }
         }
 
@@ -160,22 +166,22 @@
                 const confirm = document.getElementById('master-key-confirm').value;
 
                 if (key !== confirm) {
-                    alert('Hasła nie są identyczne');
+                    alert('Passwords do not match');
                     return;
                 }
 
                 if (key.length < 16) {
-                    alert('Master key musi mieć minimum 16 znaków');
+                    alert(I18n.t('config.minLength'));
                     return;
                 }
 
                 const result = await InterQuizAPI.setMasterKey(key);
                 if (result.message) {
-                    alert('Master key zapisany pomyślnie');
+                    alert(I18n.t('config.masterKeySet'));
                     SessionManager.setMasterKey(key);
                     await checkStatus();
                 } else {
-                    alert(result.error || 'Błąd podczas zapisywania');
+                    alert(result.error || I18n.t('config.masterKeyError'));
                 }
             });
 
@@ -187,11 +193,11 @@
 
                 const result = await InterQuizAPI.setApiKey(apiKey, masterKey);
                 if (result.message) {
-                    alert('API Key zapisany pomyślnie');
+                    alert(I18n.t('config.apiKeySaved'));
                     SessionManager.setMasterKey(masterKey);
                     await checkStatus();
                 } else {
-                    alert(result.error || 'Błąd - sprawdź master key');
+                    alert(result.error || I18n.t('config.apiKeyError'));
                 }
             });
 
@@ -202,16 +208,15 @@
 
                 const result = await InterQuizAPI.setModel(modelName);
                 if (result.message) {
-                    alert('Model zapisany pomyślnie');
+                    alert(I18n.t('config.modelSaved'));
                 } else {
-                    alert(result.error || 'Błąd podczas zapisywania');
+                    alert(result.error || I18n.t('config.modelError'));
                 }
             });
 
             // Logout
             document.getElementById('logout-btn').addEventListener('click', () => {
                 SessionManager.clearMasterKey();
-                alert('Wylogowano pomyślnie');
                 window.location.href = '/';
             });
         }

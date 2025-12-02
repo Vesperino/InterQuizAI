@@ -10,17 +10,25 @@
 <body>
     <nav class="navbar">
         <div class="logo">InterQuizAI</div>
-        <ul class="nav-links">
-            <li><a href="/">Start</a></li>
-            <li><a href="/pages/history.html">Historia</a></li>
-            <li><a href="/pages/languages.html">Języki</a></li>
-            <li><a href="/pages/config.html">Ustawienia</a></li>
-        </ul>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li><a href="/" data-i18n="nav.start">Start</a></li>
+                <li><a href="/pages/history.html" data-i18n="nav.history">Historia</a></li>
+                <li><a href="/pages/languages.html" data-i18n="nav.languages">Języki</a></li>
+                <li><a href="/pages/config.html" data-i18n="nav.settings">Ustawienia</a></li>
+            </ul>
+            <div class="lang-switcher">
+                <select id="lang-switcher" onchange="I18n.setLanguage(this.value)">
+                    <option value="pl">PL</option>
+                    <option value="en">EN</option>
+                </select>
+            </div>
+        </div>
     </nav>
 
     <main class="container">
         <section class="results-summary">
-            <h1>Quiz Zakończony!</h1>
+            <h1 data-i18n="results.title">Quiz Zakończony!</h1>
             <div class="score-circle">
                 <div class="score-circle-inner">
                     <span class="score-percentage" id="score-percentage">0%</span>
@@ -28,7 +36,7 @@
             </div>
             <div class="score-details">
                 <p style="font-size: 1.25rem; margin-bottom: 0.5rem;">
-                    <span id="correct-count">0</span> / <span id="total-count">20</span> poprawnych odpowiedzi
+                    <span id="correct-count">0</span> / <span id="total-count">20</span> <span data-i18n="results.correct">poprawnych odpowiedzi</span>
                 </p>
                 <p>
                     <span id="result-language"></span> |
@@ -39,20 +47,45 @@
         </section>
 
         <section>
-            <h2 style="margin-bottom: 1.5rem;">Przegląd odpowiedzi</h2>
+            <h2 style="margin-bottom: 1.5rem;" data-i18n="results.reviewTitle">Przegląd odpowiedzi</h2>
             <div id="questions-review">
                 <!-- Questions loaded dynamically -->
             </div>
         </section>
 
         <div style="text-align: center; margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
-            <a href="/" class="btn btn-primary">Nowy Quiz</a>
-            <a href="/pages/history.html" class="btn btn-secondary">Historia</a>
+            <a href="/" class="btn btn-primary" data-i18n="results.newQuiz">Nowy Quiz</a>
+            <a href="/pages/history.html" class="btn btn-secondary" data-i18n="results.history">Historia</a>
         </div>
     </main>
 
     <script src="/js/api.js"></script>
+    <script src="/js/i18n.js"></script>
     <script>
+        // Convert markdown code blocks to HTML
+        function formatCodeBlocks(text) {
+            if (!text) return '';
+
+            // Escape HTML first
+            let escaped = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            // Convert code blocks: ```language\ncode\n``` -> <pre><code>code</code></pre>
+            escaped = escaped.replace(/```(\w*)\n?([\s\S]*?)```/g, (match, lang, code) => {
+                return `<pre><code class="language-${lang || 'plaintext'}">${code.trim()}</code></pre>`;
+            });
+
+            // Convert inline code: `code` -> <code>code</code>
+            escaped = escaped.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+            // Convert newlines to <br> (but not inside pre tags)
+            escaped = escaped.replace(/\n(?![^<]*<\/pre>)/g, '<br>');
+
+            return escaped;
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             const params = new URLSearchParams(window.location.search);
             const sessionGuid = params.get('session');
@@ -79,7 +112,7 @@
 
             results.questions.forEach((q, index) => {
                 const statusClass = q.selectedAnswerId === null ? 'skipped' : (q.isCorrect ? 'correct' : 'incorrect');
-                const statusText = q.selectedAnswerId === null ? 'Pominięte' : (q.isCorrect ? 'Poprawne' : 'Błędne');
+                const statusText = q.selectedAnswerId === null ? I18n.t('results.statusSkipped') : (q.isCorrect ? I18n.t('results.statusCorrect') : I18n.t('results.statusIncorrect'));
 
                 let answersHtml = '';
                 q.answers.forEach((a, i) => {
@@ -90,7 +123,7 @@
                     answersHtml += `
                         <div class="answer-option ${answerClass} disabled">
                             <span class="answer-letter">${letters[i]}</span>
-                            <span class="answer-text">${a.text}</span>
+                            <span class="answer-text">${formatCodeBlocks(a.text)}</span>
                         </div>
                     `;
                 });
@@ -99,12 +132,12 @@
                 if (q.explanation) {
                     explanationHtml = `
                         <div class="review-explanation">
-                            <h4>Wyjaśnienie</h4>
-                            <p>${q.explanation}</p>
+                            <h4>${I18n.t('results.explanation')}</h4>
+                            <div class="explanation-text">${formatCodeBlocks(q.explanation)}</div>
                             ${q.sourceUrl ? `
                                 <div class="source-citation">
                                     <a href="${q.sourceUrl}" target="_blank" rel="noopener">
-                                        Źródło: ${q.sourceTitle || q.sourceUrl}
+                                        ${I18n.t('results.source')}: ${q.sourceTitle || q.sourceUrl}
                                     </a>
                                 </div>
                             ` : ''}
@@ -115,10 +148,10 @@
                 container.innerHTML += `
                     <div class="review-item">
                         <div class="review-header">
-                            <span style="color: var(--text-secondary);">Pytanie ${q.questionNumber}</span>
+                            <span style="color: var(--text-secondary);">${I18n.t('quiz.question')} ${q.questionNumber}</span>
                             <span class="result-badge ${statusClass}">${statusText}</span>
                         </div>
-                        <div class="review-question">${q.questionText}</div>
+                        <div class="review-question">${formatCodeBlocks(q.questionText)}</div>
                         <div class="answers-list" style="margin-top: 1rem;">
                             ${answersHtml}
                         </div>

@@ -10,7 +10,11 @@ public record HistoryItemDto(
     double ScorePercentage,
     bool IsOfflineGenerated,
     DateTime StartedAt,
-    DateTime? CompletedAt
+    DateTime? CompletedAt,
+    int LanguageId,
+    int CategoryId,
+    int DifficultyLevelId,
+    string? Hint
 );
 
 public record HistoryStatsDto(

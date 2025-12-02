@@ -10,12 +10,20 @@
 <body>
     <nav class="navbar">
         <div class="logo">InterQuizAI</div>
-        <ul class="nav-links">
-            <li><a href="/">Start</a></li>
-            <li><a href="/pages/history.html">Historia</a></li>
-            <li><a href="/pages/languages.html">Języki</a></li>
-            <li><a href="/pages/config.html">Ustawienia</a></li>
-        </ul>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li><a href="/" data-i18n="nav.start">Start</a></li>
+                <li><a href="/pages/history.html" data-i18n="nav.history">Historia</a></li>
+                <li><a href="/pages/languages.html" data-i18n="nav.languages">Języki</a></li>
+                <li><a href="/pages/config.html" data-i18n="nav.settings">Ustawienia</a></li>
+            </ul>
+            <div class="lang-switcher">
+                <select id="lang-switcher" onchange="I18n.setLanguage(this.value)">
+                    <option value="pl">PL</option>
+                    <option value="en">EN</option>
+                </select>
+            </div>
+        </div>
     </nav>
 
     <main class="container quiz-container">
@@ -27,8 +35,8 @@
             </div>
             <div class="quiz-progress">
                 <div class="quiz-progress-text">
-                    <span>Pytanie <span id="current-q">1</span> z <span id="total-q">20</span></span>
-                    <span id="answered-count">0 odpowiedzi</span>
+                    <span><span data-i18n="quiz.question">Pytanie</span> <span id="current-q">1</span> <span data-i18n="quiz.of">z</span> <span id="total-q">20</span></span>
+                    <span id="answered-count">0 <span data-i18n="quiz.answers">odpowiedzi</span></span>
                 </div>
                 <div class="progress-bar">
                     <div class="progress-fill" id="progress-fill" style="width: 5%;"></div>
@@ -37,9 +45,9 @@
         </div>
 
         <div class="question-card" id="question-card">
-            <div class="question-number" id="question-number">Pytanie 1</div>
+            <div class="question-number" id="question-number"></div>
             <div class="question-text" id="question-text">
-                Ładowanie pytania...
+                Loading...
             </div>
 
             <div class="answers-list" id="answers-list">
@@ -48,33 +56,58 @@
 
             <div class="question-actions">
                 <button class="btn btn-secondary" id="prev-btn" disabled>
-                    &larr; Poprzednie
+                    &larr; <span data-i18n="quiz.prev">Poprzednie</span>
                 </button>
                 <div>
-                    <button class="btn btn-secondary" id="skip-btn">
+                    <button class="btn btn-secondary" id="skip-btn" data-i18n="quiz.skip">
                         Pomiń
                     </button>
                     <button class="btn btn-primary" id="next-btn">
-                        Następne &rarr;
+                        <span data-i18n="quiz.next">Następne</span> &rarr;
                     </button>
                 </div>
             </div>
         </div>
 
         <div style="text-align: center; margin-top: 2rem;">
-            <button class="btn btn-success" id="finish-btn" style="display: none;">
+            <button class="btn btn-success" id="finish-btn" style="display: none;" data-i18n="quiz.finish">
                 Zakończ Quiz i zobacz wyniki
             </button>
         </div>
     </main>
 
     <script src="/js/api.js"></script>
+    <script src="/js/i18n.js"></script>
     <script>
         let sessionGuid = null;
         let currentQuestion = 1;
         let totalQuestions = 20;
         let answers = {}; // questionId -> answerId
         let questions = []; // cached questions
+
+        // Convert markdown code blocks to HTML
+        function formatCodeBlocks(text) {
+            if (!text) return '';
+
+            // Escape HTML first
+            let escaped = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            // Convert code blocks: ```language\ncode\n``` -> <pre><code>code</code></pre>
+            escaped = escaped.replace(/```(\w*)\n?([\s\S]*?)```/g, (match, lang, code) => {
+                return `<pre><code class="language-${lang || 'plaintext'}">${code.trim()}</code></pre>`;
+            });
+
+            // Convert inline code: `code` -> <code>code</code>
+            escaped = escaped.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+            // Convert newlines to <br> (but not inside pre tags)
+            escaped = escaped.replace(/\n(?![^<]*<\/pre>)/g, '<br>');
+
+            return escaped;
+        }
 
         document.addEventListener('DOMContentLoaded', async () => {
             const params = new URLSearchParams(window.location.search);
@@ -102,7 +135,7 @@
         async function loadQuestion(num) {
             currentQuestion = num;
             document.getElementById('current-q').textContent = num;
-            document.getElementById('question-number').textContent = `Pytanie ${num}`;
+            document.getElementById('question-number').textContent = `${I18n.t('quiz.question')} ${num}`;
             document.getElementById('progress-fill').style.width = `${(num / totalQuestions) * 100}%`;
 
             // Update buttons
@@ -113,7 +146,7 @@
             const question = await InterQuizAPI.getQuestion(sessionGuid, num);
             questions[num] = question;
 
-            document.getElementById('question-text').textContent = question.questionText;
+            document.getElementById('question-text').innerHTML = formatCodeBlocks(question.questionText);
 
             const answersContainer = document.getElementById('answers-list');
             answersContainer.innerHTML = '';
@@ -129,7 +162,7 @@
                 div.dataset.questionId = question.questionId;
                 div.innerHTML = `
                     <span class="answer-letter">${letters[index]}</span>
-                    <span class="answer-text">${answer.text}</span>
+                    <span class="answer-text">${formatCodeBlocks(answer.text)}</span>
                 `;
                 div.addEventListener('click', () => selectAnswer(div, question.questionId, answer.id));
                 answersContainer.appendChild(div);
@@ -151,7 +184,7 @@
 
         function updateAnsweredCount() {
             const count = Object.keys(answers).length;
-            document.getElementById('answered-count').textContent = `${count} odpowiedzi`;
+            document.getElementById('answered-count').innerHTML = `${count} ${I18n.t('quiz.answers')}`;
         }
 
         function setupEventListeners() {
@@ -174,7 +207,7 @@
             });
 
             document.getElementById('finish-btn').addEventListener('click', async () => {
-                if (confirm('Czy na pewno chcesz zakończyć quiz? Nie będzie można zmienić odpowiedzi.')) {
+                if (confirm(I18n.t('quiz.confirmFinish'))) {
                     await InterQuizAPI.completeQuiz(sessionGuid);
                     window.location.href = `/pages/results.html?session=${sessionGuid}`;
                 }

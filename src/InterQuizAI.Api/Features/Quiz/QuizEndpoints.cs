@@ -8,6 +8,7 @@ public static class QuizEndpoints
     {
         group.MapPost("/generate", GenerateQuiz);
         group.MapPost("/generate-offline", GenerateOfflineQuiz);
+        group.MapPost("/repeat/{sessionGuid}", RepeatQuiz);
         group.MapGet("/{sessionGuid}", GetSession);
         group.MapGet("/{sessionGuid}/questions/{questionNumber:int}", GetQuestion);
         group.MapPost("/{sessionGuid}/answer", SubmitAnswer);
@@ -26,13 +27,15 @@ public static class QuizEndpoints
             : Results.BadRequest(new { error = "Nie udało się wygenerować quizu. Sprawdź master key i konfigurację API." });
     }
 
+    private const int MinOfflineQuestions = 10;
+
     private static async Task<IResult> GenerateOfflineQuiz(GenerateQuizRequest request, IQuizService service, CancellationToken ct)
     {
         var count = await service.GetStoredQuestionsCountAsync(request.LanguageId, request.CategoryId, request.DifficultyLevelId, ct);
 
-        if (count < 20)
+        if (count < MinOfflineQuestions)
         {
-            return Results.BadRequest(new { error = $"Za mało zapisanych pytań ({count}/20). Wygeneruj najpierw quiz online." });
+            return Results.BadRequest(new { error = $"Za mało zapisanych pytań ({count}/{MinOfflineQuestions}). Wygeneruj najpierw quiz online." });
         }
 
         var result = await service.GenerateOfflineQuizAsync(request, ct);
@@ -79,6 +82,14 @@ public static class QuizEndpoints
         CancellationToken ct)
     {
         var count = await service.GetStoredQuestionsCountAsync(languageId, categoryId, difficultyLevelId, ct);
-        return Results.Ok(new { count, canGenerateOffline = count >= 20 });
+        return Results.Ok(new { count, canGenerateOffline = count >= MinOfflineQuestions });
+    }
+
+    private static async Task<IResult> RepeatQuiz(string sessionGuid, IQuizService service, CancellationToken ct)
+    {
+        var result = await service.RepeatQuizAsync(sessionGuid, ct);
+        return result != null
+            ? Results.Ok(result)
+            : Results.NotFound(new { error = "Nie znaleziono quizu do powtórzenia." });
     }
 }

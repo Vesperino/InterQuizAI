@@ -40,7 +40,11 @@ public class HistoryService : IHistoryService
             s.TotalQuestions > 0 ? (double)s.Results.Count(r => r.IsCorrect) / s.TotalQuestions * 100 : 0,
             s.IsOfflineGenerated,
             s.StartedAt,
-            s.CompletedAt
+            s.CompletedAt,
+            s.LanguageId,
+            s.CategoryId,
+            s.DifficultyLevelId,
+            s.Hint
         )).ToList();
     }
 
@@ -66,7 +70,11 @@ public class HistoryService : IHistoryService
             session.TotalQuestions > 0 ? (double)session.Results.Count(r => r.IsCorrect) / session.TotalQuestions * 100 : 0,
             session.IsOfflineGenerated,
             session.StartedAt,
-            session.CompletedAt
+            session.CompletedAt,
+            session.LanguageId,
+            session.CategoryId,
+            session.DifficultyLevelId,
+            session.Hint
         );
     }
 

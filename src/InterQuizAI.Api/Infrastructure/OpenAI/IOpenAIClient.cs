@@ -13,6 +13,7 @@ public record QuizGenerationRequest(
     string DifficultyLevel,
     string DifficultyDescription,
     string? Hint,
+    string QuizLanguage = "pl",  // "pl" for Polish, "en" for English
     int QuestionCount = 20
 );
 

@@ -221,7 +221,8 @@
     color: var(--primary);
 }
 
-.review-explanation p {
+.review-explanation p,
+.review-explanation .explanation-text {
     color: var(--text-secondary);
     line-height: 1.7;
 }
@@ -263,4 +264,52 @@
 .result-badge.skipped {
     background: rgba(148, 163, 184, 0.2);
     color: var(--text-secondary);
+}
+
+/* Code block styles */
+.question-text pre,
+.answer-text pre,
+.review-question pre,
+.explanation-text pre {
+    background: #1e1e2e;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 0.75rem 0;
+    overflow-x: auto;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.question-text pre code,
+.answer-text pre code,
+.review-question pre code,
+.explanation-text pre code {
+    background: none;
+    padding: 0;
+    color: #e2e8f0;
+    font-family: inherit;
+}
+
+.question-text code,
+.answer-text code,
+.review-question code,
+.explanation-text code {
+    background: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+/* Don't double-style code inside pre */
+.question-text pre code,
+.answer-text pre code,
+.review-question pre code,
+.explanation-text pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
 }

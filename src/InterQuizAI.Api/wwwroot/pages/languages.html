@@ -9,47 +9,55 @@
 <body>
     <nav class="navbar">
         <div class="logo">InterQuizAI</div>
-        <ul class="nav-links">
-            <li><a href="/">Start</a></li>
-            <li><a href="/pages/history.html">Historia</a></li>
-            <li><a href="/pages/languages.html" class="active">Języki</a></li>
-            <li><a href="/pages/config.html">Ustawienia</a></li>
-        </ul>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li><a href="/" data-i18n="nav.start">Start</a></li>
+                <li><a href="/pages/history.html" data-i18n="nav.history">Historia</a></li>
+                <li><a href="/pages/languages.html" class="active" data-i18n="nav.languages">Języki</a></li>
+                <li><a href="/pages/config.html" data-i18n="nav.settings">Ustawienia</a></li>
+            </ul>
+            <div class="lang-switcher">
+                <select id="lang-switcher" onchange="I18n.setLanguage(this.value)">
+                    <option value="pl">PL</option>
+                    <option value="en">EN</option>
+                </select>
+            </div>
+        </div>
     </nav>
 
     <main class="container">
-        <h1 style="margin-bottom: 2rem;">Zarządzanie językami</h1>
+        <h1 style="margin-bottom: 2rem;" data-i18n="languages.title">Języki programowania</h1>
 
         <section class="card">
             <div class="card-header">
-                <h2 class="card-title">Dodaj nowy język</h2>
+                <h2 class="card-title" data-i18n="languages.addNew">Dodaj nowy język</h2>
             </div>
             <form id="add-language-form">
                 <div class="grid grid-3">
                     <div class="form-group">
-                        <label for="tech-type">Typ technologii</label>
+                        <label for="tech-type" data-i18n="languages.type">Typ</label>
                         <select id="tech-type" class="form-control" required>
-                            <option value="">Wybierz...</option>
+                            <option value="">...</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="lang-name">Nazwa (identyfikator)</label>
+                        <label for="lang-name" data-i18n="languages.name">Nazwa (kod)</label>
                         <input type="text" id="lang-name" class="form-control" required
-                               placeholder="np. kotlin, flutter">
+                               data-i18n-placeholder="languages.namePlaceholder" placeholder="np. kotlin">
                     </div>
                     <div class="form-group">
-                        <label for="lang-display">Nazwa wyświetlana</label>
+                        <label for="lang-display" data-i18n="languages.displayName">Nazwa wyświetlana</label>
                         <input type="text" id="lang-display" class="form-control" required
-                               placeholder="np. Kotlin, Flutter">
+                               data-i18n-placeholder="languages.displayNamePlaceholder" placeholder="np. Kotlin">
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary">Dodaj język</button>
+                <button type="submit" class="btn btn-primary" data-i18n="languages.addBtn">Dodaj język</button>
             </form>
         </section>
 
         <div class="tabs">
-            <button class="tab active" data-type="backend">Backend</button>
-            <button class="tab" data-type="frontend">Frontend</button>
+            <button class="tab active" data-type="backend" data-i18n="languages.backendTitle">Backend</button>
+            <button class="tab" data-type="frontend" data-i18n="languages.frontendTitle">Frontend</button>
         </div>
 
         <section class="card">
@@ -57,10 +65,10 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Nazwa</th>
-                            <th>Identyfikator</th>
-                            <th>Typ</th>
-                            <th>Akcje</th>
+                            <th data-i18n="languages.displayName">Nazwa</th>
+                            <th data-i18n="languages.name">Identyfikator</th>
+                            <th data-i18n="languages.type">Typ</th>
+                            <th data-i18n="history.actions">Akcje</th>
                         </tr>
                     </thead>
                     <tbody id="languages-body">
@@ -72,6 +80,7 @@
     </main>
 
     <script src="/js/api.js"></script>
+    <script src="/js/i18n.js"></script>
     <script>
         let currentType = 'backend';
 
@@ -99,6 +108,7 @@
             tbody.innerHTML = '';
 
             languages.forEach(lang => {
+                const builtinText = I18n.currentLang === 'pl' ? 'Wbudowany' : 'Built-in';
                 tbody.innerHTML += `
                     <tr>
                         <td>${lang.displayName}</td>
@@ -106,8 +116,8 @@
                         <td>${lang.technologyType}</td>
                         <td>
                             ${lang.isCustom
-                                ? `<button class="btn btn-sm btn-danger" onclick="deleteLanguage(${lang.id})">Usuń</button>`
-                                : '<span style="color: var(--text-muted);">Wbudowany</span>'
+                                ? `<button class="btn btn-sm btn-danger" onclick="deleteLanguage(${lang.id})">${I18n.t('history.delete')}</button>`
+                                : `<span style="color: var(--text-muted);">${builtinText}</span>`
                             }
                         </td>
                     </tr>
@@ -116,9 +126,13 @@
         }
 
         async function deleteLanguage(id) {
-            if (confirm('Czy na pewno chcesz usunąć ten język?')) {
-                await InterQuizAPI.deleteLanguage(id);
-                await loadLanguages(currentType);
+            if (confirm(I18n.t('languages.deleteConfirm'))) {
+                const result = await InterQuizAPI.deleteLanguage(id);
+                if (result.error) {
+                    alert(I18n.t('languages.deleteError'));
+                } else {
+                    await loadLanguages(currentType);
+                }
             }
         }
 
@@ -143,7 +157,7 @@
                 if (result.error) {
                     alert(result.error);
                 } else {
-                    alert('Język dodany pomyślnie');
+                    alert(I18n.t('languages.added'));
                     document.getElementById('add-language-form').reset();
                     await loadLanguages(techType);
 

@@ -4,55 +4,61 @@ public static class PromptTemplates
 {
     public static string GetQuizGenerationPrompt(QuizGenerationRequest request)
     {
+        var outputLanguage = request.QuizLanguage?.ToLower() == "pl" ? "Polish" : "English";
         var hintText = !string.IsNullOrEmpty(request.Hint)
-            ? $"\nDODATKOWA WSKAZÓWKA: Skup się szczególnie na: {request.Hint}"
+            ? $"\nADDITIONAL FOCUS: Emphasize questions about: {request.Hint}"
             : "";
 
-        return $@"Jesteś ekspertem technicznym tworzącym quiz do przygotowania na rozmowę kwalifikacyjną.
+        return $@"You are a technical expert creating a quiz for job interview preparation.
 
-ZADANIE: Wygeneruj dokładnie {request.QuestionCount} pytań wielokrotnego wyboru dla programisty {request.LanguageDisplayName}.
+TASK: Generate exactly {request.QuestionCount} multiple choice questions for a {request.LanguageDisplayName} developer.
 
-KONTEKST:
-- Technologia: {request.LanguageDisplayName}
-- Kategoria: {request.Category} - {request.CategoryDescription}
-- Poziom trudności: {request.DifficultyLevel} - {request.DifficultyDescription}
+CRITICAL REQUIREMENTS:
+- The ""questions"" array MUST contain EXACTLY {request.QuestionCount} elements
+- OUTPUT LANGUAGE: All questions, answers and explanations MUST be in {outputLanguage}
+
+CONTEXT:
+- Technology: {request.LanguageDisplayName}
+- Category: {request.Category} - {request.CategoryDescription}
+- Difficulty: {request.DifficultyLevel} - {request.DifficultyDescription}
 {hintText}
 
-WYMAGANIA:
-1. Każde pytanie MUSI mieć dokładnie 5 odpowiedzi (A do E)
-2. Dokładnie JEDNA odpowiedź musi być prawidłowa
-3. Nieprawidłowe odpowiedzi powinny być wiarygodne, ale wyraźnie błędne dla kogoś znającego temat
-4. Pytania muszą być praktyczne i istotne dla prawdziwych rozmów kwalifikacyjnych
-5. Unikaj banalnych pytań - skup się na zrozumieniu, nie na zapamiętywaniu
-6. UŻYJ WEB SEARCH aby zweryfikować poprawność techniczną pytań i odpowiedzi
-7. Dla każdego pytania podaj wyjaśnienie DLACZEGO dana odpowiedź jest prawidłowa oraz źródło
+CODE FORMATTING (IMPORTANT):
+- When including code snippets, use markdown code blocks with language identifier
+- Format: ```csharp\ncode here\n``` or ```javascript\ncode here\n```
+- Use inline code with backticks for short references: `ClassName` or `methodName()`
+- Code in questions and answers should be properly formatted for readability
 
-FORMAT WYJŚCIA (JSON):
+REQUIREMENTS:
+1. Each question MUST have exactly 5 answers (A to E)
+2. Exactly ONE answer must be correct
+3. Incorrect answers should be plausible but clearly wrong for experts
+4. Questions must be practical for real job interviews
+5. Focus on understanding, not memorization
+6. USE WEB SEARCH to verify technical correctness
+7. Include detailed explanation (100-200 words) with source URL
+
+OUTPUT FORMAT (JSON):
 {{
   ""questions"": [
     {{
-      ""questionText"": ""Treść pytania?"",
+      ""questionText"": ""Question with ```csharp\ncode\n``` if needed"",
       ""answers"": [
-        {{ ""text"": ""Odpowiedź A"", ""isCorrect"": false }},
-        {{ ""text"": ""Odpowiedź B"", ""isCorrect"": true }},
-        {{ ""text"": ""Odpowiedź C"", ""isCorrect"": false }},
-        {{ ""text"": ""Odpowiedź D"", ""isCorrect"": false }},
-        {{ ""text"": ""Odpowiedź E"", ""isCorrect"": false }}
+        {{ ""text"": ""Answer A with `code` if needed"", ""isCorrect"": false }},
+        {{ ""text"": ""Answer B"", ""isCorrect"": true }},
+        {{ ""text"": ""Answer C"", ""isCorrect"": false }},
+        {{ ""text"": ""Answer D"", ""isCorrect"": false }},
+        {{ ""text"": ""Answer E"", ""isCorrect"": false }}
       ],
-      ""explanation"": ""Szczegółowe wyjaśnienie dlaczego odpowiedź B jest prawidłowa (100-200 słów)"",
-      ""sourceUrl"": ""https://docs.microsoft.com/..."",
-      ""sourceTitle"": ""Oficjalna dokumentacja Microsoft""
+      ""explanation"": ""Detailed explanation with ```csharp\nexample code\n``` if helpful"",
+      ""sourceUrl"": ""https://docs.example.com/..."",
+      ""sourceTitle"": ""Source Title""
     }}
   ]
 }}
 
-KONTROLA JAKOŚCI:
-- Zweryfikuj każdą odpowiedź technicznie używając web search
-- Upewnij się że pytania testują zrozumienie, nie tylko pamięć
-- Dopasuj trudność do określonego poziomu
-- Używaj aktualnych informacji i najlepszych praktyk
-- Wszystkie wyjaśnienia i źródła MUSZĄ być w języku polskim lub angielskim (preferowany angielski dla źródeł technicznych)
+BEFORE FINISHING: Count questions - must be exactly {request.QuestionCount}!
 
-Wygeneruj quiz teraz:";
+Generate quiz now:";
     }
 }

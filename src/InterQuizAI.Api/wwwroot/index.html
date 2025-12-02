@@ -3,94 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InterQuizAI - Przygotowanie do rozmów technicznych</title>
+    <title>InterQuizAI</title>
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
     <nav class="navbar">
         <div class="logo">InterQuizAI</div>
-        <ul class="nav-links">
-            <li><a href="/" class="active">Start</a></li>
-            <li><a href="/pages/history.html">Historia</a></li>
-            <li><a href="/pages/languages.html">Języki</a></li>
-            <li><a href="/pages/config.html">Ustawienia</a></li>
-        </ul>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li><a href="/" class="active" data-i18n="nav.start">Start</a></li>
+                <li><a href="/pages/history.html" data-i18n="nav.history">Historia</a></li>
+                <li><a href="/pages/languages.html" data-i18n="nav.languages">Języki</a></li>
+                <li><a href="/pages/config.html" data-i18n="nav.settings">Ustawienia</a></li>
+            </ul>
+            <div class="lang-switcher">
+                <select id="lang-switcher" onchange="I18n.setLanguage(this.value)">
+                    <option value="pl">PL</option>
+                    <option value="en">EN</option>
+                </select>
+            </div>
+        </div>
     </nav>
 
     <main class="container">
         <section class="hero">
-            <h1>Przygotuj się do rozmowy technicznej</h1>
-            <p>Quizy generowane przez AI z weryfikowanymi odpowiedziami</p>
+            <h1 data-i18n="index.title">Przygotuj się do rozmowy technicznej</h1>
+            <p data-i18n="index.subtitle">Quizy generowane przez AI z weryfikowanymi odpowiedziami</p>
         </section>
 
         <div id="config-alert" class="alert alert-error" style="display: none;">
-            Najpierw skonfiguruj aplikację w <a href="/pages/config.html">Ustawieniach</a>
+            <span data-i18n="index.configAlert">Najpierw skonfiguruj aplikację w</span> <a href="/pages/config.html" data-i18n="index.configAlertLink">Ustawieniach</a>
         </div>
 
         <div id="login-section" class="card" style="display: none;">
             <div class="card-header">
-                <h2 class="card-title">Zaloguj się</h2>
+                <h2 class="card-title" data-i18n="index.login">Zaloguj się</h2>
             </div>
             <form id="login-form">
                 <div class="form-group">
-                    <label for="login-master-key">Master Key</label>
-                    <input type="password" id="login-master-key" class="form-control" placeholder="Wprowadź master key" required>
+                    <label for="login-master-key" data-i18n="index.masterKey">Master Key</label>
+                    <input type="password" id="login-master-key" class="form-control" data-i18n-placeholder="index.masterKeyPlaceholder" placeholder="Wprowadź master key" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Zaloguj</button>
+                <button type="submit" class="btn btn-primary" data-i18n="index.loginBtn">Zaloguj</button>
             </form>
         </div>
 
         <section id="quiz-form-section" class="card" style="display: none;">
             <div class="card-header">
-                <h2 class="card-title">Rozpocznij Quiz</h2>
+                <h2 class="card-title" data-i18n="index.startQuiz">Rozpocznij Quiz</h2>
             </div>
             <form id="quiz-form">
                 <div class="grid grid-2">
                     <div class="form-group">
-                        <label for="tech-type">Typ technologii</label>
+                        <label for="tech-type" data-i18n="index.techType">Typ technologii</label>
                         <select id="tech-type" class="form-control" required>
-                            <option value="">Wybierz typ...</option>
+                            <option value="" data-i18n="index.techTypePlaceholder">Wybierz typ...</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="language">Język / Framework</label>
+                        <label for="language" data-i18n="index.language">Język / Framework</label>
                         <select id="language" class="form-control" required disabled>
-                            <option value="">Najpierw wybierz typ...</option>
+                            <option value="" data-i18n="index.languagePlaceholder">Najpierw wybierz typ...</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="grid grid-2">
+                <div class="grid grid-3">
                     <div class="form-group">
-                        <label for="category">Kategoria pytań</label>
+                        <label for="category" data-i18n="index.category">Kategoria pytań</label>
                         <select id="category" class="form-control" required disabled>
-                            <option value="">Najpierw wybierz typ...</option>
+                            <option value="" data-i18n="index.categoryPlaceholder">Najpierw wybierz typ...</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="difficulty">Poziom trudności</label>
+                        <label for="difficulty" data-i18n="index.difficulty">Poziom trudności</label>
                         <select id="difficulty" class="form-control" required>
-                            <option value="">Wybierz poziom...</option>
+                            <option value="" data-i18n="index.difficultyPlaceholder">Wybierz poziom...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="quiz-language" data-i18n="index.quizLanguage">Język quizu</label>
+                        <select id="quiz-language" class="form-control" required>
+                            <option value="pl">Polski</option>
+                            <option value="en">English</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="form-group" id="hint-container" style="display: none;">
-                    <label for="hint">Dodatkowa wskazówka (opcjonalne)</label>
-                    <input type="text" id="hint" class="form-control" placeholder="np. SQL Server, Pinia, xUnit">
-                    <small style="color: var(--text-muted);">Pomaga AI skupić się na konkretnej technologii</small>
+                <div class="form-group">
+                    <label for="hint" data-i18n="index.hint">Dodatkowe wskazówki dla AI (opcjonalne)</label>
+                    <input type="text" id="hint" class="form-control" data-i18n-placeholder="index.hintPlaceholder" placeholder="np. TimescaleDB, duże zbiory danych, Pinia, xUnit">
+                    <small style="color: var(--text-muted);" data-i18n="index.hintHelp">Pomaga AI skupić się na konkretnych technologiach, bibliotekach lub zagadnieniach</small>
                 </div>
 
                 <div id="offline-info" style="display: none; margin-bottom: 1rem;">
-                    <span class="status-badge status-success">Dostępny tryb offline</span>
-                    <span style="color: var(--text-secondary); margin-left: 0.5rem;">(<span id="stored-count">0</span> zapisanych pytań)</span>
+                    <span class="status-badge status-success" data-i18n="index.offlineAvailable">Dostępny tryb offline</span>
+                    <span style="color: var(--text-secondary); margin-left: 0.5rem;">(<span id="stored-count">0</span> <span data-i18n="index.storedQuestions">zapisanych pytań</span>)</span>
                 </div>
 
                 <div style="display: flex; gap: 1rem;">
-                    <button type="submit" class="btn btn-primary" id="generate-btn">
+                    <button type="submit" class="btn btn-primary" id="generate-btn" data-i18n="index.generateBtn">
                         Generuj Quiz (AI)
                     </button>
-                    <button type="button" class="btn btn-secondary" id="offline-btn" disabled>
+                    <button type="button" class="btn btn-secondary" id="offline-btn" disabled data-i18n="index.offlineBtn">
                         Quiz Offline
                     </button>
                 </div>
@@ -99,17 +114,17 @@
 
         <section class="card" style="margin-top: 2rem;">
             <div class="card-header">
-                <h2 class="card-title">Twój plan nauki (.NET Mid + Vue3)</h2>
+                <h2 class="card-title" data-i18n="index.studyPlan">Twój plan nauki (.NET Mid + Vue3)</h2>
             </div>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Typ</th>
-                            <th>Język</th>
-                            <th>Kategoria</th>
-                            <th>Sesje</th>
-                            <th>Hint</th>
+                            <th data-i18n="table.type">Typ</th>
+                            <th data-i18n="table.language">Język</th>
+                            <th data-i18n="table.category">Kategoria</th>
+                            <th data-i18n="table.sessions">Sesje</th>
+                            <th data-i18n="table.hint">Hint</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -124,17 +139,18 @@
                     </tbody>
                 </table>
             </div>
-            <p style="margin-top: 1rem; color: var(--text-secondary);">Razem: 12 sesji = ~240 pytań</p>
+            <p style="margin-top: 1rem; color: var(--text-secondary);" data-i18n="index.studyPlanTotal">Razem: 12 sesji = ~240 pytań</p>
         </section>
     </main>
 
     <div class="loading-overlay" id="loading" style="display: none;">
         <div class="spinner"></div>
-        <p class="loading-text">Generowanie quizu przez AI...</p>
-        <p class="loading-text" style="font-size: 0.875rem; margin-top: 0.5rem;">To może potrwać do 60 sekund</p>
+        <p class="loading-text" data-i18n="index.loading">Generowanie quizu przez AI...</p>
+        <p class="loading-text" style="font-size: 0.875rem; margin-top: 0.5rem;" data-i18n="index.loadingTime">To może potrwać do 60 sekund</p>
     </div>
 
     <script src="/js/api.js"></script>
+    <script src="/js/i18n.js"></script>
     <script>
         let selectedCategory = null;
 
@@ -180,7 +196,7 @@
         async function loadLanguages(techType) {
             const languages = await InterQuizAPI.getLanguages(techType);
             const select = document.getElementById('language');
-            select.innerHTML = '<option value="">Wybierz język...</option>';
+            select.innerHTML = `<option value="">${I18n.t('index.languageSelect')}</option>`;
             languages.forEach(l => {
                 const option = document.createElement('option');
                 option.value = l.id;
@@ -193,7 +209,7 @@
         async function loadCategories(techType) {
             const categories = await InterQuizAPI.getCategories(techType);
             const select = document.getElementById('category');
-            select.innerHTML = '<option value="">Wybierz kategorię...</option>';
+            select.innerHTML = `<option value="">${I18n.t('index.categorySelect')}</option>`;
             categories.forEach(c => {
                 const option = document.createElement('option');
                 option.value = c.id;
@@ -238,7 +254,7 @@
                     SessionManager.setMasterKey(masterKey);
                     await checkConfig();
                 } else {
-                    alert('Nieprawidłowy master key');
+                    alert(I18n.t('index.invalidMasterKey'));
                 }
             });
 
@@ -249,18 +265,15 @@
                     await loadLanguages(type);
                     await loadCategories(type);
                 } else {
-                    document.getElementById('language').innerHTML = '<option value="">Najpierw wybierz typ...</option>';
+                    document.getElementById('language').innerHTML = `<option value="">${I18n.t('index.languagePlaceholder')}</option>`;
                     document.getElementById('language').disabled = true;
-                    document.getElementById('category').innerHTML = '<option value="">Najpierw wybierz typ...</option>';
+                    document.getElementById('category').innerHTML = `<option value="">${I18n.t('index.categoryPlaceholder')}</option>`;
                     document.getElementById('category').disabled = true;
                 }
             });
 
-            // Category change - show hint if allowed
+            // Category change
             document.getElementById('category').addEventListener('change', (e) => {
-                const option = e.target.selectedOptions[0];
-                const allowsHint = option?.dataset?.allowsHint === 'true';
-                document.getElementById('hint-container').style.display = allowsHint ? 'block' : 'none';
                 checkOfflineAvailability();
             });
 
@@ -286,6 +299,7 @@
             const categoryId = parseInt(document.getElementById('category').value);
             const difficultyId = parseInt(document.getElementById('difficulty').value);
             const hint = document.getElementById('hint').value || null;
+            const quizLanguage = document.getElementById('quiz-language').value;
             const masterKey = SessionManager.getMasterKey();
 
             document.getElementById('loading').style.display = 'flex';
@@ -293,9 +307,9 @@
             try {
                 let result;
                 if (offline) {
-                    result = await InterQuizAPI.generateOfflineQuiz(languageId, categoryId, difficultyId, hint, masterKey);
+                    result = await InterQuizAPI.generateOfflineQuiz(languageId, categoryId, difficultyId, hint, masterKey, quizLanguage);
                 } else {
-                    result = await InterQuizAPI.generateQuiz(languageId, categoryId, difficultyId, hint, masterKey);
+                    result = await InterQuizAPI.generateQuiz(languageId, categoryId, difficultyId, hint, masterKey, quizLanguage);
                 }
 
                 if (result.error) {
@@ -304,7 +318,7 @@
                     window.location.href = `/pages/quiz.html?session=${result.sessionGuid}`;
                 }
             } catch (error) {
-                alert('Błąd podczas generowania quizu: ' + error.message);
+                alert(I18n.t('index.generateError') + error.message);
             } finally {
                 document.getElementById('loading').style.display = 'none';
             }

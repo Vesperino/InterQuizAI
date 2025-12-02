@@ -9,52 +9,60 @@
 <body>
     <nav class="navbar">
         <div class="logo">InterQuizAI</div>
-        <ul class="nav-links">
-            <li><a href="/">Start</a></li>
-            <li><a href="/pages/history.html" class="active">Historia</a></li>
-            <li><a href="/pages/languages.html">Języki</a></li>
-            <li><a href="/pages/config.html">Ustawienia</a></li>
-        </ul>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li><a href="/" data-i18n="nav.start">Start</a></li>
+                <li><a href="/pages/history.html" class="active" data-i18n="nav.history">Historia</a></li>
+                <li><a href="/pages/languages.html" data-i18n="nav.languages">Języki</a></li>
+                <li><a href="/pages/config.html" data-i18n="nav.settings">Ustawienia</a></li>
+            </ul>
+            <div class="lang-switcher">
+                <select id="lang-switcher" onchange="I18n.setLanguage(this.value)">
+                    <option value="pl">PL</option>
+                    <option value="en">EN</option>
+                </select>
+            </div>
+        </div>
     </nav>
 
     <main class="container">
-        <h1 style="margin-bottom: 2rem;">Historia Quizów</h1>
+        <h1 style="margin-bottom: 2rem;" data-i18n="history.title">Historia Quizów</h1>
 
         <section class="card" id="stats-card">
             <div class="card-header">
-                <h2 class="card-title">Statystyki</h2>
+                <h2 class="card-title" data-i18n="history.stats">Statystyki</h2>
             </div>
             <div class="grid grid-3" id="stats-grid">
                 <div style="text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: var(--primary);" id="total-quizzes">0</div>
-                    <div style="color: var(--text-secondary);">Ukończonych quizów</div>
+                    <div style="color: var(--text-secondary);" data-i18n="history.completedQuizzes">Ukończonych quizów</div>
                 </div>
                 <div style="text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: var(--success);" id="avg-score">0%</div>
-                    <div style="color: var(--text-secondary);">Średni wynik</div>
+                    <div style="color: var(--text-secondary);" data-i18n="history.avgScore">Średni wynik</div>
                 </div>
                 <div style="text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: var(--warning);" id="total-questions">0</div>
-                    <div style="color: var(--text-secondary);">Odpowiedzianych pytań</div>
+                    <div style="color: var(--text-secondary);" data-i18n="history.totalQuestions">Odpowiedzianych pytań</div>
                 </div>
             </div>
         </section>
 
         <section class="card">
             <div class="card-header">
-                <h2 class="card-title">Lista quizów</h2>
+                <h2 class="card-title" data-i18n="history.quizList">Lista quizów</h2>
             </div>
             <div class="table-container">
                 <table id="history-table">
                     <thead>
                         <tr>
-                            <th>Data</th>
-                            <th>Język</th>
-                            <th>Kategoria</th>
-                            <th>Poziom</th>
-                            <th>Wynik</th>
-                            <th>Typ</th>
-                            <th>Akcje</th>
+                            <th data-i18n="history.date">Data</th>
+                            <th data-i18n="history.language">Język</th>
+                            <th data-i18n="history.category">Kategoria</th>
+                            <th data-i18n="history.level">Poziom</th>
+                            <th data-i18n="history.score">Wynik</th>
+                            <th data-i18n="history.type">Typ</th>
+                            <th data-i18n="history.actions">Akcje</th>
                         </tr>
                     </thead>
                     <tbody id="history-body">
@@ -63,13 +71,14 @@
                 </table>
             </div>
             <div class="empty-state" id="empty-state" style="display: none;">
-                <p>Brak historii quizów</p>
-                <a href="/" class="btn btn-primary" style="margin-top: 1rem;">Rozpocznij pierwszy quiz</a>
+                <p data-i18n="history.empty">Brak historii quizów</p>
+                <a href="/" class="btn btn-primary" style="margin-top: 1rem;" data-i18n="history.startFirst">Rozpocznij pierwszy quiz</a>
             </div>
         </section>
     </main>
 
     <script src="/js/api.js"></script>
+    <script src="/js/i18n.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             await loadStats();
@@ -96,7 +105,7 @@
 
             tbody.innerHTML = '';
             history.forEach(item => {
-                const date = new Date(item.startedAt).toLocaleDateString('pl-PL', {
+                const date = new Date(item.startedAt).toLocaleDateString(I18n.currentLang === 'pl' ? 'pl-PL' : 'en-US', {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',
@@ -121,9 +130,10 @@
                             </span>
                         </td>
                         <td>${typeLabel}</td>
-                        <td>
-                            <a href="/pages/results.html?session=${item.sessionGuid}" class="btn btn-sm btn-secondary">Zobacz</a>
-                            <button class="btn btn-sm btn-danger" onclick="deleteHistory('${item.sessionGuid}')">Usuń</button>
+                        <td style="white-space: nowrap;">
+                            <a href="/pages/results.html?session=${item.sessionGuid}" class="btn btn-sm btn-secondary">${I18n.t('history.view')}</a>
+                            <button class="btn btn-sm btn-primary" onclick="repeatQuiz('${item.sessionGuid}')">${I18n.t('history.repeat')}</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteHistory('${item.sessionGuid}')">${I18n.t('history.delete')}</button>
                         </td>
                     </tr>
                 `;
@@ -131,10 +141,33 @@
         }
 
         async function deleteHistory(sessionGuid) {
-            if (confirm('Czy na pewno chcesz usunąć ten quiz z historii?')) {
+            if (confirm(I18n.t('history.confirmDelete'))) {
                 await InterQuizAPI.deleteHistory(sessionGuid);
                 await loadHistory();
                 await loadStats();
+            }
+        }
+
+        async function repeatQuiz(sessionGuid) {
+            // Show loading
+            document.body.insertAdjacentHTML('beforeend', `
+                <div class="loading-overlay" id="loading" style="display: flex;">
+                    <div class="spinner"></div>
+                    <p class="loading-text">${I18n.t('history.creating')}</p>
+                </div>
+            `);
+
+            try {
+                const result = await InterQuizAPI.repeatQuiz(sessionGuid);
+                if (result.error) {
+                    alert(result.error);
+                } else {
+                    window.location.href = `/pages/quiz.html?session=${result.sessionGuid}`;
+                }
+            } catch (error) {
+                alert(I18n.t('history.repeatError') + error.message);
+            } finally {
+                document.getElementById('loading')?.remove();
             }
         }
     </script>

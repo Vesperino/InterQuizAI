@@ -11,6 +11,7 @@ public interface IQuizService
 {
     Task<QuizSessionDto?> GenerateQuizAsync(GenerateQuizRequest request, CancellationToken ct = default);
     Task<QuizSessionDto?> GenerateOfflineQuizAsync(GenerateQuizRequest request, CancellationToken ct = default);
+    Task<QuizSessionDto?> RepeatQuizAsync(string originalSessionGuid, CancellationToken ct = default);
     Task<QuizSessionDto?> GetSessionAsync(string sessionGuid, CancellationToken ct = default);
     Task<QuestionDto?> GetQuestionAsync(string sessionGuid, int questionNumber, CancellationToken ct = default);
     Task<bool> SubmitAnswerAsync(string sessionGuid, SubmitAnswerRequest answer, CancellationToken ct = default);
@@ -73,6 +74,7 @@ public class QuizService : IQuizService
             difficulty.DisplayName,
             difficulty.Description ?? "",
             request.Hint,
+            request.QuizLanguage ?? "pl",
             20
         );
 
@@ -151,21 +153,24 @@ public class QuizService : IQuizService
         );
     }
 
+    private const int MinOfflineQuestions = 10;
+    private const int MaxOfflineQuestions = 20;
+
     public async Task<QuizSessionDto?> GenerateOfflineQuizAsync(GenerateQuizRequest request, CancellationToken ct = default)
     {
-        // Get random questions from stored database
+        // Get random questions from stored database (up to 20)
         var questions = await _dbContext.Questions
             .Include(q => q.Answers)
             .Where(q => q.LanguageId == request.LanguageId
                      && q.CategoryId == request.CategoryId
                      && q.DifficultyLevelId == request.DifficultyLevelId)
             .OrderBy(q => Guid.NewGuid())
-            .Take(20)
+            .Take(MaxOfflineQuestions)
             .ToListAsync(ct);
 
-        if (questions.Count < 20)
+        if (questions.Count < MinOfflineQuestions)
         {
-            _logger.LogWarning("Not enough stored questions. Found {Count}, need 20", questions.Count);
+            _logger.LogWarning("Not enough stored questions. Found {Count}, need {Min}", questions.Count, MinOfflineQuestions);
             return null;
         }
 
@@ -176,13 +181,15 @@ public class QuizService : IQuizService
         if (language == null || category == null || difficulty == null)
             return null;
 
+        var questionCount = questions.Count;
+
         var session = new QuizSession
         {
             LanguageId = request.LanguageId,
             CategoryId = request.CategoryId,
             DifficultyLevelId = request.DifficultyLevelId,
             Hint = request.Hint,
-            TotalQuestions = 20,
+            TotalQuestions = questionCount,
             IsOfflineGenerated = true
         };
 
@@ -206,7 +213,7 @@ public class QuizService : IQuizService
             category.DisplayName,
             difficulty.DisplayName,
             request.Hint,
-            20,
+            questionCount,
             false,
             true,
             session.StartedAt
@@ -381,5 +388,59 @@ public class QuizService : IQuizService
             .CountAsync(q => q.LanguageId == languageId
                           && q.CategoryId == categoryId
                           && q.DifficultyLevelId == difficultyLevelId, ct);
+    }
+
+    public async Task<QuizSessionDto?> RepeatQuizAsync(string originalSessionGuid, CancellationToken ct = default)
+    {
+        // Get the original session with its questions
+        var originalSession = await _dbContext.QuizSessions
+            .Include(s => s.Language)
+            .Include(s => s.Category)
+            .Include(s => s.DifficultyLevel)
+            .Include(s => s.SessionQuestions)
+            .FirstOrDefaultAsync(s => s.SessionGuid == originalSessionGuid, ct);
+
+        if (originalSession == null)
+        {
+            _logger.LogWarning("Original session not found: {SessionGuid}", originalSessionGuid);
+            return null;
+        }
+
+        // Create a new session with the same settings
+        var newSession = new QuizSession
+        {
+            LanguageId = originalSession.LanguageId,
+            CategoryId = originalSession.CategoryId,
+            DifficultyLevelId = originalSession.DifficultyLevelId,
+            Hint = originalSession.Hint,
+            TotalQuestions = originalSession.TotalQuestions,
+            IsOfflineGenerated = true // Mark as offline since we're reusing questions
+        };
+
+        _dbContext.QuizSessions.Add(newSession);
+
+        // Copy the same questions to the new session (same order)
+        foreach (var sq in originalSession.SessionQuestions.OrderBy(sq => sq.QuestionOrder))
+        {
+            newSession.SessionQuestions.Add(new QuizSessionQuestion
+            {
+                QuestionId = sq.QuestionId,
+                QuestionOrder = sq.QuestionOrder
+            });
+        }
+
+        await _dbContext.SaveChangesAsync(ct);
+
+        return new QuizSessionDto(
+            newSession.SessionGuid,
+            originalSession.Language.DisplayName,
+            originalSession.Category.DisplayName,
+            originalSession.DifficultyLevel.DisplayName,
+            originalSession.Hint,
+            newSession.TotalQuestions,
+            false,
+            true,
+            newSession.StartedAt
+        );
     }
 }

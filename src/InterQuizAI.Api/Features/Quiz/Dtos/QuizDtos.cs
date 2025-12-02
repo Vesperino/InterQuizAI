@@ -5,7 +5,8 @@ public record GenerateQuizRequest(
     int CategoryId,
     int DifficultyLevelId,
     string? Hint,
-    string MasterKey
+    string MasterKey,
+    string QuizLanguage = "pl"  // "pl" for Polish, "en" for English
 );
 
 public record QuizSessionDto(

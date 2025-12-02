@@ -64,6 +64,34 @@ body {
     color: var(--primary);
 }
 
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* Language switcher */
+.lang-switcher {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.lang-switcher select {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    padding: 0.4rem 0.6rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.lang-switcher select:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
 /* Container */
 .container {
     max-width: 1200px;
